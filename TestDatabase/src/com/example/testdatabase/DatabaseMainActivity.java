@@ -1,12 +1,12 @@
 package com.example.testdatabase;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.res.Resources.Theme;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
@@ -56,7 +56,7 @@ public class DatabaseMainActivity extends Activity implements OnClickListener, O
 		_ageEdit.setOnFocusChangeListener(this);
 
 		
-		checkAnything();
+//		checkAnything();
 		
 	}
 	
@@ -88,6 +88,9 @@ public class DatabaseMainActivity extends Activity implements OnClickListener, O
 			cal03.roll(Calendar.DATE, 1);
 			Logger.w(this, "checkAnything", "cal03 = " + cal03);
 			
+			
+			
+			
 		}catch (Exception e) {
 			
 			Logger.e(this, "checkAnything", "" + e);
@@ -102,6 +105,7 @@ public class DatabaseMainActivity extends Activity implements OnClickListener, O
 		return true;
 	}
 
+	
 	@Override
 	public void onClick(View view) {
 		
@@ -114,15 +118,16 @@ public class DatabaseMainActivity extends Activity implements OnClickListener, O
 			
 			if(inputName != null && inputName.length() > 0) {
 				// データ列に入力値を設定し、インサートする
-				ContentValues values = new ContentValues();
+//				ContentValues values = new ContentValues();
 //				values.put("name", inputName);
 //				values.put("age", _ageEdit.getText().toString());
 //				long id = _mydb.insert("mytable", null, values);
 //				Logger.w(this, "onClick", "insert id = " + id);
 
 				try{
-					_mydb.execSQL("insert into mytable(name,age) values ('" + inputName + "', " + _ageEdit.getText().toString() + ");");
-					
+					// 挿入（insert）文の別表記はこんな感じ
+//					_mydb.execSQL("insert into mytable(name, age, regist_date) values ('" + inputName + "', " + _ageEdit.getText().toString() + ", datetime('now', 'localtime') );");
+					_mydb.execSQL("insert into mytable(name, age, regist_date) values ('" + inputName + "', " + _ageEdit.getText().toString() + ", '2013-08-01' );");
 				}catch(SQLException e) {
 					Logger.e(this, "onClick", "" + e);
 				}
@@ -150,7 +155,7 @@ public class DatabaseMainActivity extends Activity implements OnClickListener, O
 
 			// TODO Select文見やすく出来ないらしい
 			Cursor mCursor = _mydb.query("mytable",
-					new String[] { "_id", "name", "age" }, /*"_id = ?"*/null
+					new String[] { "_id", "name", "age", "regist_date" }, /*"_id = ?"*/null
 					, /*new String[]{"a*"}*/null, null, null, null);
 			
 			
@@ -190,15 +195,19 @@ public class DatabaseMainActivity extends Activity implements OnClickListener, O
 					int id = mCursor.getInt(0);
 					String name = mCursor.getString(1);
 					int age = mCursor.getInt(2);
+					String date = mCursor.getString(3);
 
 //                    Logger.d(this, "onClick", "data = " + data);
-                    Logger.d(this, "onClick", "id = " + id + ", name = " + name +", age = " + age);
+                    Logger.d(this, "onClick", "id = " + id + ", name = " + name + ", age = " + age + ", date = " + date);
                     
 //                    tmp += data + "\n";
-                    tmp += id + " " + name + " " + age + "\n";
+                    tmp += id + " " + name + " " + age + " " + date + "\n";
                     
     				mCursor.moveToNext();
     				Logger.w(this, "onClick", "tmp = " + tmp);
+    				
+    				
+    				formatDate(date);
 				}
 			}
 			
@@ -211,6 +220,51 @@ public class DatabaseMainActivity extends Activity implements OnClickListener, O
 		_selectBtn.requestFocus();
 	}
 
+	
+	protected void formatDate(String regist_date) {
+		
+		try {
+			SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			Date date = format1.parse(regist_date);
+			
+			Logger.i(this, "formatDate", "データベースから取得した日付をDate型へ => " + date);
+			
+			SimpleDateFormat format2 = new SimpleDateFormat("yyyy/MM/dd");
+			String rs = format2.format(date);
+				
+			Logger.i(this, "formatDate", "Date型にした日付を指定のFormatへ変更 => " + rs);
+			
+			// XXX Date型は非推奨のメソッドが多いのでCalendar型を推奨されている
+			
+			Calendar tmpcal = Calendar.getInstance();
+			tmpcal.setTime(date);
+
+			Logger.d(this, "formatDate", "カレンダー型 " + tmpcal);
+			Logger.d(this, "formatDate", "カレンダー型：年 " + tmpcal.get(Calendar.YEAR));
+			// 月は0～11の値で表されます。そのため、実際の月は1加える必要があります。
+			Logger.d(this, "formatDate", "カレンダー型：月 " + tmpcal.get(Calendar.MONTH));
+			Logger.d(this, "formatDate", "カレンダー型：日 " + tmpcal.get(Calendar.DATE));
+
+			tmpcal.add(Calendar.DATE, -3);
+			Logger.d(this, "formatDate", "カレンダー型：3日前 " + tmpcal.get(Calendar.DATE));
+			
+			tmpcal.add(Calendar.MONTH, 2);
+			Logger.d(this, "formatDate", "カレンダー型：2ヶ月後 " + tmpcal.get(Calendar.MONTH));
+			
+			
+			
+			
+			
+		}catch (Exception e) {
+			Logger.e(this, "formatDate", "" + e);
+		}
+		
+		
+		
+		
+		
+	}
+	
 	@Override
 	public void onFocusChange(View view, boolean hasFocus) {
 		if (hasFocus == false) {

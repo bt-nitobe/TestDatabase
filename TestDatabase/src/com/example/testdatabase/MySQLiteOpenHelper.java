@@ -28,7 +28,7 @@ class MySQLiteOpenHelper extends SQLiteOpenHelper {
     	db.execSQL("create table mytable (" +
     				" _id INTEGER primary key autoincrement," +
     				" name TEXT not null," +
-    				" age INTEGER" +
+    				" age INTEGER," +
     				" regist_date TEXT" +
     				" );"
     			);
